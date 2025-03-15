@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('authentication', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('https://www.saucedemo.com');
+    await page.goto('/');
   });
 
   async function login(page, username, password) {
@@ -16,6 +16,7 @@ test.describe('authentication', () => {
   test('success login', async ({ page }) => {
     await login(page, 'standard_user', 'secret_sauce');
     await expect(page).toHaveURL('https://www.saucedemo.com/inventory.html')
+    await page.context().storageState({ path: 'playwright/.auth/session.json' });
   });
 
   test('user logout', async ({ page }) => {
