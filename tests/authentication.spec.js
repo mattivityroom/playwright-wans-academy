@@ -1,26 +1,27 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/loginPage';
+import { todo } from 'node:test';
 
 test.describe('authentication', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
   });
 
-  async function login(page, username, password) {
-    await page.fill('#user-name', username);
-    await page.fill('#password', password);
-
-    await page.click('#login-button');
-  }
+  // TODO: refactor loginPage to use be
+test.beforeAll(async ({ browser }) => {
+  let context = await browser.newContext();
+  let page = await context.newPage();
+});
 
   test('success login', async ({ page }) => {
-    await login(page, 'standard_user', 'secret_sauce');
-    await expect(page).toHaveURL('https://www.saucedemo.com/inventory.html')
-    await page.context().storageState({ path: 'playwright/.auth/session.json' });
+    const loginPage = LoginPage(page);
+    await loginPage.login('standard_user', 'secret_sauce');
   });
 
   test('user logout', async ({ page }) => {
-    await login(page, 'standard_user', 'secret_sauce');
+    const loginPage = LoginPage(page);
+    await loginPage.login('standard_user', 'secret_sauce');
 
     await page.click('#react-burger-menu-btn')
     await page.click('#logout_sidebar_link')
@@ -29,12 +30,14 @@ test.describe('authentication', () => {
   });
 
   test('user locked out', async ({ page }) => {
-    await login(page, 'locked_out_user', 'secret_sauce');
+    const loginPage = LoginPage(page);
+    await loginPage.login('locked_out_user', 'secret_sauce');
     await expect(page.locator('[data-test="error"]')).toContainText('Epic sadface: Sorry, this user has been locked out.');
   });
 
   test('invalid authentication', async ({ page }) => {
-    await login(page, 'invalid_user', 'invalid_password');
+    const loginPage = LoginPage(page);
+    await loginPage.login('invalid_user', 'invalid_password');
     await expect(page.locator('[data-test="error"]')).toContainText('Epic sadface: Username and password do not match any user in this service');
   });
 });
