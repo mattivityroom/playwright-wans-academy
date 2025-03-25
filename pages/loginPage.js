@@ -1,18 +1,21 @@
-const LoginPage = (page) => {
-  return {
-    async navigate() {
-      await page.goto('/');
-    },
+export class LoginPage {
+  constructor(page) {
+    this.page = page;
+    this.username = this.page.locator('#user-name');
+    this.password = this.page.locator('#password');
+    this.loginButton = this.page.locator('#login-button');
+  }
 
-    async login(username, password) {
-      this.navigate()
-      await page.fill('#user-name', username);
-      await page.fill('#password', password);
-      await page.click('#login-button');
-      await page.waitForLoadState('load')
-      await page.context().storageState({ path: 'playwright/.auth/session.json' });
-    }
+  async navigate() {
+    await this.page.goto('/');
+  }
+
+  async login(username, password) {
+    await this.navigate();
+    await this.username.fill(username);
+    await this.password.fill(password);
+    await this.loginButton.click();
+    await this.page.waitForLoadState('load');
+    await this.page.context().storageState({ path: 'playwright/.auth/session.json' });
   }
 }
-
-module.exports = { LoginPage };

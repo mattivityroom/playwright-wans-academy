@@ -1,35 +1,24 @@
-// @ts-check
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/loginPage';
+import { expect } from '@playwright/test';
+import { test } from '../fixtures/authSetup'
 
 test.describe('authentication', () => {
-  let loginPage;
+    test('Login with valid credentials', async ({ validAuth }) => {
+        expect(await validAuth.page.url()).toBe('https://www.saucedemo.com/inventory.html');
+    });
 
-  test.beforeEach(async ({ page }) => {
-    loginPage = LoginPage(page);
-    await page.goto('/');
-  });
+    test('Login with invalid credentials', async ({ invalidAuth }) => {
+        expect(await invalidAuth.page.url()).not.toBe('https://www.saucedemo.com/inventory.html');
+        expect(await invalidAuth.page.locator('[data-test="error"]')).toContainText('Epic sadface: Username and password do not match any user in this service');
+    });
 
-  test('success login', async ({ page }) => {
-    await loginPage.login('standard_user', 'secret_sauce');
-  });
+    test('Logout', async ({ validAuth }) => {
+        await validAuth.page.click('#react-burger-menu-btn');
+        await validAuth.page.click('#logout_sidebar_link');
+        expect(await validAuth.page.url()).toBe('https://www.saucedemo.com/');
+    });
 
-  test('user logout', async ({ page }) => {
-    await loginPage.login('standard_user', 'secret_sauce');
-
-    await page.click('#react-burger-menu-btn')
-    await page.click('#logout_sidebar_link')
-
-    await expect(page).toHaveURL('https://www.saucedemo.com/')
-  });
-
-  test('user locked out', async ({ page }) => {
-    await loginPage.login('locked_out_user', 'secret_sauce');
-    await expect(page.locator('[data-test="error"]')).toContainText('Epic sadface: Sorry, this user has been locked out.');
-  });
-
-  test('invalid authentication', async ({ page }) => {
-    await loginPage.login('invalid_user', 'invalid_password');
-    await expect(page.locator('[data-test="error"]')).toContainText('Epic sadface: Username and password do not match any user in this service');
-  });
+    test('user locked out', async ({ lockedAuth }) => {
+        expect(await lockedAuth.page.locator('[data-test="error"]'))
+            .toContainText('Epic sadface: Sorry, this user has been locked out.');
+    });
 });
